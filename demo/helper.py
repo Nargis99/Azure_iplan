@@ -10,7 +10,7 @@ from redis import Redis
 
 load_dotenv()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key =  os.getenv("OPENAI_API_KEY")
 openai.api_base =  os.getenv("OPENAI_API_BASE")
 openai.api_type = 'azure'
 openai.api_version = '2022-12-01'

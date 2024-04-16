@@ -4,7 +4,8 @@ from utilities.helper import LLMHelper
 import regex as re
 import os
 from random import randint
-
+import traceback
+from streamlit import components
 
 def clear_chat_data():
     st.session_state['chat_history'] = []
@@ -40,18 +41,59 @@ try :
         st.session_state ['input_message_key'] = 1
 
     # Initialize Chat Icons
-    ai_avatar_style = os.getenv("CHAT_AI_AVATAR_STYLE", "icons")
-    ai_seed = os.getenv("CHAT_AI_SEED", "Mia")
-    user_avatar_style = os.getenv("CHAT_USER_AVATAR_STYLE", "icons")
-    user_seed = os.getenv("CHAT_USER_SEED", "Mia")
+    # user_avatar_style = "custom"
+    # user_seed = os.path.join('images','man_logo.jpg')
+
+    # ai_avatar_style = "custom"
+    # ai_seed = os.path.join('images','logo.png')
+
+    # user_avatar_style = os.getenv("CHAT_USER_AVATAR_STYLE", "thumbs")
+    # user_seed = os.getenv("CHAT_USER_SEED", "Bubba")
+    # ai_avatar_style = os.getenv("CHAT_AI_AVATAR_STYLE", "thumbs")
+    # ai_seed = os.getenv("CHAT_AI_SEED", "Lucy")
+
+    user_avatar_style = os.getenv("CHAT_USER_AVATAR_STYLE")
+    user_seed = os.getenv("CHAT_USER_SEED")
+    ai_avatar_style = os.getenv("CHAT_AI_AVATAR_STYLE")
+    ai_seed = os.getenv("CHAT_AI_SEED")
+
 
     llm_helper = LLMHelper()
 
     # Chat 
-    
-    clear_chat = st.button("Clear chat", key="clear_chat", on_click=clear_chat_data)
-    input_text = st.text_input("You: ", placeholder="type your question", key="input"+str(st.session_state ['input_message_key']), on_change=questionAsked)
+    col1, col2, col3 = st.columns([1,0.3,1])
+    with col2:
+        st.image(os.path.join('images','logo.png'), use_column_width=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # Use Markdown syntax to style the text
+        st.markdown(
+            "<h2 style='text-align: center; font-weight: bold;'>Start Chatting</h2>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<p style='text-align: center; font-size: 15px; font-weight: 100; margin-top: -10px;'>This chatbot is configured to answer your questions</p>",
+            unsafe_allow_html=True,
+        )
 
+    col1, col2, col3 = st.columns([2, 2, 2])
+
+    # with col1:
+    #     clear_chat = st.button("Clear chat", key="clear_chat", on_click=clear_chat_data)
+
+    with col1:
+        input_text = """
+        <div style='position: relative;'>
+            <input style='width: 800px; height: 140px; margin-top: 60px; border: none; outline: none; border-radius: 6px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);'>
+            <div style='position: absolute; top: 60px; left: 5px; padding: 8px; pointer-events: none; color: #aaa;'>Type a new question...</div>
+            <div style='position: absolute; bottom: 0; left: 0; width: 800px; height: 3px; background: linear-gradient(to right, lightblue, darkblue);'></div>
+        </div>
+        """
+
+        # input_text = st.markdown(input_text, unsafe_allow_html=True, key="input"+str(st.session_state ['input_message_key']), on_change=questionAsked)
+        st.markdown(input_text, unsafe_allow_html=True)
+
+    input_text = st.text_input("", placeholder="type your question", key="input"+str(st.session_state ['input_message_key']), on_change=questionAsked)
 
     # If a question is asked execute the request to get the result, context, sources and up to 3 follow-up questions proposals
     if st.session_state.chat_askedquestion:
@@ -90,9 +132,9 @@ try :
                         str_followup_question = re.sub(r"(^|[^\\\\])'", r"\1\\'", followup_question)
 
             answer_with_citations = re.sub(r'\$\^\{(.*?)\}\$', r'(\1)', st.session_state['chat_history'][i][1]) # message() does not get Latex nor html
+            message(st.session_state['chat_history'][i][0], is_user=True, key=str(i)+'user' + '_user', avatar_style=user_avatar_style, seed=user_seed)
             message(answer_with_citations ,key=str(i)+'answers', avatar_style=ai_avatar_style, seed=ai_seed)
             st.markdown(f'\n\nSources: {st.session_state["chat_source_documents"][i]}')
-            message(st.session_state['chat_history'][i][0], is_user=True, key=str(i)+'user' + '_user', avatar_style=user_avatar_style, seed=user_seed)
 
 except Exception:
     st.error(traceback.format_exc())
